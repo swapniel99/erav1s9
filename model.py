@@ -10,7 +10,7 @@ class ConvLayer(nn.Module):
         self.skip = skip
 
         # If Depthwise Separable is True
-        if dws:
+        if dws and input_c == output_c:
             self.convlayer = nn.Sequential(
                 nn.Conv2d(input_c, output_c, 3, bias=bias,  padding=padding, groups=input_c, dilation=dilation,
                           padding_mode='replicate'),
@@ -55,7 +55,7 @@ class Model(nn.Module):
         # Member Variables
         self.dropout = dropout
 
-        self.cblock1 = self.get_conv_block(3, 24, padding=1, dws=True, skip=skip, reps=2)
+        self.cblock1 = self.get_conv_block(3, 24, padding=1, dws=True, skip=False, reps=2)
         self.tblock1 = self.get_trans_block(24, 32, padding=0, dws=False, skip=False, dilation=1)
         self.cblock2 = self.get_conv_block(32, 32, padding=1, dws=True, skip=skip, reps=2)
         self.tblock2 = self.get_trans_block(32, 64, padding=0, dws=False, skip=False, dilation=2)
