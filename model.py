@@ -97,5 +97,5 @@ class Model(nn.Module):
         return x
 
     def summary(self, input_size=None):
-        return torchinfo.summary(self, input_size=input_size,
+        return torchinfo.summary(self, input_size=input_size, depth=5,
                                  col_names=["input_size", "output_size", "num_params", "params_percent"])
