@@ -11,10 +11,10 @@ class CIFAR10(DataSet):
 
     def get_train_loader(self):
         self.augment_transforms = self.augment_transforms or transforms.Compose([
-            transforms.RandomHorizontalFlip(0.5),
-            transforms.RandomGrayscale(0.1),
-            transforms.RandomRotation(7),
-            transforms.RandomPerspective(0.3, 0.5)
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomGrayscale(),
+            transforms.RandomCrop(32, padding=4, padding_mode='reflect'),
+            transforms.RandomRotation(7)
         ])
         super(CIFAR10, self).get_train_loader()
 
