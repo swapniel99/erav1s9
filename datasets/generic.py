@@ -1,6 +1,8 @@
 import os
+import numpy as np
 from matplotlib import pyplot as plt
-from torchvision import transforms
+import albumentations as A
+from albumentations.pytorch import ToTensorV2 as ToTensor
 from abc import abstractmethod
 
 
@@ -13,27 +15,33 @@ class DataSet(object):
         self.batch_size = batch_size
         self.augment_transforms = augment_transforms
         self.shuffle = shuffle
-        self.loader_kwargs = {'batch_size': batch_size, 'num_workers': os.cpu_count(), 'pin_memory': True}
-        self.std_transforms = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(self.mean, self.std)
-        ])
-        self.train_transforms = self.std_transforms
-        self.test_transforms = self.std_transforms
+        self.loader_kwargs = {'batch_size': batch_size, 'num_workers': os.cpu_count()}
+        self.std_transforms = [
+            ToTensor(),
+            A.Normalize(self.mean, self.std)
+        ]
+        self.train_transforms = None
+        self.test_transforms = None
         self.train_loader, self.test_loader = self.get_loaders()
         self.example_iter = iter(self.train_loader)
 
-    @abstractmethod
-    def get_train_loader(self):
+    def get_train_transforms(self):
         all_transforms = list()
         if self.augment_transforms is not None:
-            all_transforms.append(self.augment_transforms)
-        all_transforms.append(self.std_transforms)
-        self.train_transforms = transforms.Compose(all_transforms)
+            all_transforms += self.augment_transforms
+        all_transforms += self.std_transforms
+        return lambda x: A.Compose(all_transforms)(image=np.array(x))['image']
+
+    def get_test_transforms(self):
+        return lambda x: A.Compose(self.std_transforms)(image=np.array(x))['image']
+
+    @abstractmethod
+    def get_train_loader(self):
+        self.train_transforms = self.get_train_transforms()
 
     @abstractmethod
     def get_test_loader(self):
-        pass
+        self.test_transforms = self.get_test_transforms()
 
     def get_loaders(self):
         return self.get_train_loader(), self.get_test_loader()

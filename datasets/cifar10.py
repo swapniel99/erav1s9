@@ -1,5 +1,6 @@
 import torch
-from torchvision import datasets, transforms
+from torchvision import datasets
+import albumentations as A
 
 from .generic import DataSet
 
@@ -9,13 +10,16 @@ class CIFAR10(DataSet):
     std = (0.24703233, 0.24348505, 0.26158768)
     classes = None
 
+    def get_train_transforms(self):
+        if self.augment_transforms is None:
+            self.augment_transforms = [
+                A.HorizontalFlip(),
+                A.ToGray(),
+                A.Rotate(limit=7, p=1.)
+            ]
+        return super(CIFAR10, self).get_train_transforms()
+
     def get_train_loader(self):
-        self.augment_transforms = self.augment_transforms or transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomGrayscale(),
-            transforms.RandomCrop(32, padding=4, padding_mode='reflect'),
-            transforms.RandomRotation(7)
-        ])
         super(CIFAR10, self).get_train_loader()
 
         train_data = datasets.CIFAR10('../data', train=True, download=True, transform=self.train_transforms)
@@ -26,6 +30,7 @@ class CIFAR10(DataSet):
 
     def get_test_loader(self):
         super(CIFAR10, self).get_test_loader()
+
         test_data = datasets.CIFAR10('../data', train=False, download=True, transform=self.test_transforms)
         self.test_loader = torch.utils.data.DataLoader(test_data, shuffle=False, **self.loader_kwargs)
         return self.test_loader
