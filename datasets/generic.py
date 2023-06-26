@@ -14,7 +14,7 @@ class MyDataSet(object):
         self.batch_size = batch_size
         self.alb_transforms = alb_transforms
         self.shuffle = shuffle
-        self.loader_kwargs = {'batch_size': batch_size, 'num_workers': os.cpu_count()}
+        self.loader_kwargs = {'batch_size': batch_size, 'num_workers': os.cpu_count(), 'pin_memory': True}
         self.std_transforms = [
             A.Normalize(self.mean, self.std),
             ToTensorV2()
