@@ -56,13 +56,13 @@ class Model(nn.Module):
         self.dropout = dropout
 
         self.cblock1 = self.get_conv_block(3, 24, padding=1, dws=True, skip=False, reps=2, dropout=self.dropout)
-        self.tblock1 = self.get_trans_block(24, 32, padding=0, dws=False, skip=False, dilation=1, dropout=self.dropout)
+        self.tblock1 = self.get_trans_block(24, 32, padding=2, dws=False, skip=skip, dilation=2, dropout=self.dropout)
         self.cblock2 = self.get_conv_block(32, 32, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock2 = self.get_trans_block(32, 64, padding=0, dws=False, skip=False, dilation=2, dropout=self.dropout)
+        self.tblock2 = self.get_trans_block(32, 64, padding=4, dws=False, skip=skip, dilation=4, dropout=self.dropout)
         self.cblock3 = self.get_conv_block(64, 64, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock3 = self.get_trans_block(64, 96, padding=0, dws=False, skip=False, dilation=4, dropout=self.dropout)
+        self.tblock3 = self.get_trans_block(64, 96, padding=8, dws=False, skip=skip, dilation=8, dropout=self.dropout)
         self.cblock4 = self.get_conv_block(96, 96, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock4 = self.get_trans_block(96, 96, padding=0, dws=False, skip=False, dilation=8, dropout=0)
+        self.tblock4 = self.get_trans_block(96, 96, padding=16, dws=False, skip=skip, dilation=16, dropout=0)
 
         self.oblock = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
