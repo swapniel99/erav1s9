@@ -60,8 +60,7 @@ class Train(object):
             processed += len(data)
 
             pbar.set_description(
-                desc=f"Train: Average Loss={train_loss / processed:0.4f}, Accuracy={100 * correct / processed:0.2f} "
-                     f"upto Batch_id={batch_idx}"
+                desc=f"Train: Average Loss={train_loss / processed:0.4f}, Accuracy={100 * correct / processed:0.2f}"
             )
 
         train_acc = 100 * correct / processed
