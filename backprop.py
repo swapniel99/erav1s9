@@ -28,7 +28,7 @@ class Train(object):
         self.l1 = l1
 
         self.train_losses = list()
-        self.train_acc = list()
+        self.train_accuracies = list()
 
     def __call__(self):
         self.model.train()
@@ -60,18 +60,23 @@ class Train(object):
             processed += len(data)
 
             pbar.set_description(
-                desc=f"Train: Batch_id={batch_idx}, Average Loss={train_loss / processed:0.4f}, "
-                     f"Accuracy={100 * correct / processed:0.2f}"
+                desc=f"Train: Average Loss={train_loss / processed:0.4f}, Accuracy={100 * correct / processed:0.2f}"
             )
 
-        self.train_acc.append(100 * correct / processed)
-        self.train_losses.append(train_loss / processed)
+        train_acc = 100 * correct / processed
+        train_loss /= processed
+        self.train_accuracies.append(train_acc)
+        self.train_losses.append(train_loss)
+
+        # print(f"Train: Average loss: {train_loss:0.4f}, Accuracy: {train_acc:0.2f}")
+
+        return train_loss, train_acc
 
     def plot_stats(self):
         fig, axs = plt.subplots(1, 2, figsize=(15, 5))
         axs[0].plot(self.train_losses)
         axs[0].set_title("Training Loss")
-        axs[1].plot(self.train_acc)
+        axs[1].plot(self.train_accuracies)
         axs[1].set_title("Training Accuracy")
 
 
@@ -83,7 +88,7 @@ class Test(object):
         self.dataset = dataset
 
         self.test_losses = list()
-        self.test_acc = list()
+        self.test_accuracies = list()
 
     def __call__(self, incorrect_preds=None):
         self.model.eval()
@@ -108,37 +113,45 @@ class Test(object):
                     incorrect_preds["ground_truths"] += truth
                     incorrect_preds["predicted_vals"] += pred
 
+        test_acc = 100 * correct / processed
         test_loss /= processed
-        self.test_acc.append(100 * correct / processed)
+        self.test_accuracies.append(test_acc)
         self.test_losses.append(test_loss)
 
-        print(f"Test: Average loss: {test_loss:0.4f}, Accuracy: {100 * correct / processed:0.2f}")
+        print(f"Test:  Average loss: {test_loss:0.4f}, Accuracy: {test_acc:0.2f}")
 
-        return test_loss
+        return test_loss, test_acc
 
     def plot_stats(self):
         fig, axs = plt.subplots(1, 2, figsize=(15, 5))
         axs[0].plot(self.test_losses)
         axs[0].set_title("Test Loss")
-        axs[1].plot(self.test_acc)
+        axs[1].plot(self.test_accuracies)
         axs[1].set_title("Test Accuracy")
 
 
 class Experiment(object):
-    def __init__(self, model, dataset, lr=0.01, criterion=F.nll_loss):
+    def __init__(self, model, dataset, lr=0.01, criterion=F.nll_loss, target=None):
         self.model = model.to(get_device())
         self.dataset = dataset
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=0, verbose=True, factor=0.3)
+        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=1, verbose=True, factor=0.1)
         self.train = Train(self.model, dataset, criterion, self.optimizer)
         self.test = Test(self.model, dataset, criterion)
+        self.target = target
         self.incorrect_preds = None
 
     def execute(self, num_epochs=20):
+        target_count = 0
         for epoch in range(1, num_epochs + 1):
             print(f'Epoch {epoch}')
             self.train()
-            test_loss = self.test()
+            test_loss, test_acc = self.test()
+            if self.target is not None and test_acc >= self.target:
+                target_count += 1
+                if target_count >= 3:
+                    print("Target Validation accuracy achieved thrice. Stopping Training.")
+                    break
             self.scheduler.step(test_loss)
 
     def show_incorrect(self, denorm=True):

@@ -1,24 +1,44 @@
+import numpy as np
 import torch
-from torchvision import datasets, transforms
+from torchvision import datasets
+import albumentations as A
 
-from .generic import DataSet
+from .generic import MyDataSet
 
 
-class CIFAR10(DataSet):
+class AlbCIFAR10(datasets.CIFAR10):
+    def __init__(self, root, alb_transform=None, **kwargs):
+        super(AlbCIFAR10, self).__init__(root, **kwargs)
+        self.alb_transform = alb_transform
+
+    def __getitem__(self, index):
+        image, label = super(AlbCIFAR10, self).__getitem__(index)
+        if self.alb_transform is not None:
+            image = self.alb_transform(image=np.array(image))['image']
+        return image, label
+
+
+class CIFAR10(MyDataSet):
     mean = (0.49139968, 0.48215827, 0.44653124)
     std = (0.24703233, 0.24348505, 0.26158768)
     classes = None
 
+    def get_train_transforms(self):
+        if self.alb_transforms is None:
+            self.alb_transforms = [
+                A.Downscale(0.8, 0.95, p=0.2),
+                A.ColorJitter(0.1, 0.1, 0.1, 0.1, p=0.2),
+                A.ToGray(p=0.1),
+                A.HorizontalFlip(p=0.5),
+                A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=15),
+                A.CoarseDropout(max_holes=1, max_height=16, max_width=16, p=0.2)  # Since already normalised mean=0=fill
+            ]
+        return super(CIFAR10, self).get_train_transforms()
+
     def get_train_loader(self):
-        self.augment_transforms = self.augment_transforms or transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomGrayscale(),
-            transforms.RandomCrop(32, padding=4, padding_mode='reflect'),
-            transforms.RandomRotation(7)
-        ])
         super(CIFAR10, self).get_train_loader()
 
-        train_data = datasets.CIFAR10('../data', train=True, download=True, transform=self.train_transforms)
+        train_data = AlbCIFAR10('../data', train=True, download=True, alb_transform=self.train_transforms)
         if self.classes is None:
             self.classes = {i: c for i, c in enumerate(train_data.classes)}
         self.train_loader = torch.utils.data.DataLoader(train_data, shuffle=self.shuffle, **self.loader_kwargs)
@@ -26,7 +46,8 @@ class CIFAR10(DataSet):
 
     def get_test_loader(self):
         super(CIFAR10, self).get_test_loader()
-        test_data = datasets.CIFAR10('../data', train=False, download=True, transform=self.test_transforms)
+
+        test_data = AlbCIFAR10('../data', train=False, download=True, alb_transform=self.test_transforms)
         self.test_loader = torch.utils.data.DataLoader(test_data, shuffle=False, **self.loader_kwargs)
         return self.test_loader
 

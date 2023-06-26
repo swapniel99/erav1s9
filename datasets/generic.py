@@ -1,42 +1,44 @@
 import os
-from matplotlib import pyplot as plt
-from torchvision import transforms
 from abc import abstractmethod
+from matplotlib import pyplot as plt
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 
-class DataSet(object):
+class MyDataSet(object):
     mean = None
     std = None
     classes = None
 
-    def __init__(self, batch_size=32, augment_transforms=None, shuffle=True):
+    def __init__(self, batch_size=32, alb_transforms=None, shuffle=True):
         self.batch_size = batch_size
-        self.augment_transforms = augment_transforms
+        self.alb_transforms = alb_transforms
         self.shuffle = shuffle
         self.loader_kwargs = {'batch_size': batch_size, 'num_workers': os.cpu_count(), 'pin_memory': True}
-        self.std_transforms = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(self.mean, self.std)
-        ])
-        self.train_transforms = self.std_transforms
-        self.test_transforms = self.std_transforms
-        self.train_loader, self.test_loader = self.get_loaders()
+        self.train_transforms = self.get_train_transforms()
+        self.test_transforms = self.get_test_transforms()
+        self.train_loader = self.get_train_loader()
+        self.test_loader = self.get_test_loader()
         self.example_iter = iter(self.train_loader)
+
+    def get_train_transforms(self):
+        all_transforms = [A.Normalize(self.mean, self.std)]
+        if self.alb_transforms is not None:
+            all_transforms += self.alb_transforms
+        all_transforms.append(ToTensorV2())
+        return A.Compose(all_transforms)
+
+    def get_test_transforms(self):
+        all_transforms = [A.Normalize(self.mean, self.std), ToTensorV2()]
+        return A.Compose(all_transforms)
 
     @abstractmethod
     def get_train_loader(self):
-        all_transforms = list()
-        if self.augment_transforms is not None:
-            all_transforms.append(self.augment_transforms)
-        all_transforms.append(self.std_transforms)
-        self.train_transforms = transforms.Compose(all_transforms)
+        pass
 
     @abstractmethod
     def get_test_loader(self):
         pass
-
-    def get_loaders(self):
-        return self.get_train_loader(), self.get_test_loader()
 
     @classmethod
     def denormalise(cls, tensor):
