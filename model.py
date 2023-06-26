@@ -55,14 +55,14 @@ class Model(nn.Module):
         # Member Variables
         self.dropout = dropout
 
-        self.cblock1 = self.get_conv_block(3, 24, padding=1, dws=True, skip=False, reps=2)
-        self.tblock1 = self.get_trans_block(24, 32, padding=0, dws=False, skip=False, dilation=1)
-        self.cblock2 = self.get_conv_block(32, 32, padding=1, dws=True, skip=skip, reps=2)
-        self.tblock2 = self.get_trans_block(32, 64, padding=0, dws=False, skip=False, dilation=2)
-        self.cblock3 = self.get_conv_block(64, 64, padding=1, dws=True, skip=skip, reps=2)
-        self.tblock3 = self.get_trans_block(64, 96, padding=0, dws=False, skip=False, dilation=4)
-        self.cblock4 = self.get_conv_block(96, 96, padding=1, dws=True, skip=skip, reps=2)
-        self.tblock4 = self.get_trans_block(96, 96, padding=0, dws=False, skip=False, dilation=8)
+        self.cblock1 = self.get_conv_block(3, 24, padding=1, dws=True, skip=False, reps=2, dropout=self.dropout)
+        self.tblock1 = self.get_trans_block(24, 32, padding=0, dws=False, skip=False, dilation=1, dropout=self.dropout)
+        self.cblock2 = self.get_conv_block(32, 32, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
+        self.tblock2 = self.get_trans_block(32, 64, padding=0, dws=False, skip=False, dilation=2, dropout=self.dropout)
+        self.cblock3 = self.get_conv_block(64, 64, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
+        self.tblock3 = self.get_trans_block(64, 96, padding=0, dws=False, skip=False, dilation=4, dropout=self.dropout)
+        self.cblock4 = self.get_conv_block(96, 96, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
+        self.tblock4 = self.get_trans_block(96, 96, padding=0, dws=False, skip=False, dilation=8, dropout=0)
 
         self.oblock = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
@@ -71,18 +71,21 @@ class Model(nn.Module):
             nn.LogSoftmax(-1)
         )
 
-    def get_conv_block(self, input_c, output_c, bias=False, padding=0, dws=True, skip=True, reps=2, dilation=1):
+    @staticmethod
+    def get_conv_block(input_c, output_c, bias=False, padding=0, dws=True, skip=True, reps=2, dilation=1,
+                       dropout=0):
         block = list()
         for i in range(0, reps):
             block.append(
                 ConvLayer(output_c if i > 0 else input_c, output_c, bias=bias, padding=padding, dws=dws, skip=skip,
-                          dilation=dilation, dropout=self.dropout)
+                          dilation=dilation, dropout=dropout)
             )
         return nn.Sequential(*block)
 
-    def get_trans_block(self, input_c, output_c, bias=False, padding=0, dws=False, skip=False, dilation=1):
+    @staticmethod
+    def get_trans_block(input_c, output_c, bias=False, padding=0, dws=False, skip=False, dilation=1, dropout=0):
         return ConvLayer(input_c, output_c, bias=bias, padding=padding, dws=dws, skip=skip, dilation=dilation,
-                         dropout=self.dropout)
+                         dropout=dropout)
 
     def forward(self, x):
         x = self.cblock1(x)
