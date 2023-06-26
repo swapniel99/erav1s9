@@ -28,9 +28,9 @@ class CIFAR10(MyDataSet):
             self.alb_transforms = [
                 A.Downscale(0.8, 0.95, p=0.2),
                 A.ColorJitter(0.1, 0.1, 0.1, 0.1, p=0.2),
-                A.ToGray(p=0.2),
+                A.ToGray(p=0.1),
                 A.HorizontalFlip(p=0.5),
-                A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.1, rotate_limit=7),
+                A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=15),
                 A.CoarseDropout(max_holes=1, max_height=16, max_width=16, p=0.2)  # Since already normalised mean=0=fill
             ]
         return super(CIFAR10, self).get_train_transforms()
