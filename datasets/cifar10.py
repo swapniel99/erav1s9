@@ -29,7 +29,7 @@ class CIFAR10(MyDataSet):
                 A.HorizontalFlip(p=0.5),
                 A.ToGray(p=0.1),
                 A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.1, rotate_limit=7),
-                A.CoarseDropout(max_holes=1, max_height=16, max_width=16, fill_value=list(self.mean), p=0.5)
+                A.CoarseDropout(max_holes=1, max_height=16, max_width=16, fill_value=sum(self.mean)/3, p=0.5)
             ]
         return super(CIFAR10, self).get_train_transforms()
 
