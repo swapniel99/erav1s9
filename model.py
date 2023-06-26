@@ -56,8 +56,8 @@ class Model(nn.Module):
         # Member Variables
         self.dropout = dropout
 
-        self.cblock1 = self.get_conv_block(3, 24, padding=1, dws=True, skip=False, reps=2, dropout=self.dropout)
-        self.tblock1 = self.get_trans_block(24, 32, padding=0, dws=False, skip=False, dilation=1, dropout=self.dropout)
+        self.cblock1 = self.get_conv_block(3, 25, padding=1, dws=True, skip=False, reps=2, dropout=self.dropout)
+        self.tblock1 = self.get_trans_block(25, 32, padding=0, dws=False, skip=False, dilation=1, dropout=self.dropout)
         self.cblock2 = self.get_conv_block(32, 32, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
         self.tblock2 = self.get_trans_block(32, 65, padding=0, dws=False, skip=False, dilation=2, dropout=self.dropout)
         self.cblock3 = self.get_conv_block(65, 65, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
