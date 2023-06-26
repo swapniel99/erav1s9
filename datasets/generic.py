@@ -15,10 +15,6 @@ class MyDataSet(object):
         self.alb_transforms = alb_transforms
         self.shuffle = shuffle
         self.loader_kwargs = {'batch_size': batch_size, 'num_workers': os.cpu_count(), 'pin_memory': True}
-        self.std_transforms = [
-            A.Normalize(self.mean, self.std),
-            ToTensorV2()
-        ]
         self.train_transforms = self.get_train_transforms()
         self.test_transforms = self.get_test_transforms()
         self.train_loader = self.get_train_loader()
@@ -26,14 +22,15 @@ class MyDataSet(object):
         self.example_iter = iter(self.train_loader)
 
     def get_train_transforms(self):
-        all_transforms = list()
+        all_transforms = [A.Normalize(self.mean, self.std)]
         if self.alb_transforms is not None:
             all_transforms += self.alb_transforms
-        all_transforms += self.std_transforms
+        all_transforms.append(ToTensorV2())
         return A.Compose(all_transforms)
 
     def get_test_transforms(self):
-        return A.Compose(self.std_transforms)
+        all_transforms = [A.Normalize(self.mean, self.std), ToTensorV2()]
+        return A.Compose(all_transforms)
 
     @abstractmethod
     def get_train_loader(self):
