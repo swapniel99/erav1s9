@@ -60,8 +60,8 @@ class Train(object):
             processed += len(data)
 
             pbar.set_description(
-                desc=f"Train: Batch_id={batch_idx}, Average Loss={train_loss / processed:0.4f}, "
-                     f"Accuracy={100 * correct / processed:0.2f}"
+                desc=f"Train: Average Loss={train_loss / processed:0.4f}, Accuracy={100 * correct / processed:0.2f} "
+                     f"upto Batch_id={batch_idx}"
             )
 
         train_acc = 100 * correct / processed
@@ -119,7 +119,7 @@ class Test(object):
         self.test_accuracies.append(test_acc)
         self.test_losses.append(test_loss)
 
-        print(f"Test: Average loss: {test_loss:0.4f}, Accuracy: {test_acc:0.2f}")
+        print(f"Test:  Average loss: {test_loss:0.4f}, Accuracy: {test_acc:0.2f}")
 
         return test_loss, test_acc
 
