@@ -69,7 +69,7 @@ class Train(object):
         self.train_accuracies.append(train_acc)
         self.train_losses.append(train_loss)
 
-        print(f"Train: Average loss: {train_loss:0.4f}, Accuracy: {train_acc:0.2f}")
+        # print(f"Train: Average loss: {train_loss:0.4f}, Accuracy: {train_acc:0.2f}")
 
         return train_loss, train_acc
 
