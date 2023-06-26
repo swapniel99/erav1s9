@@ -15,14 +15,14 @@ class ConvLayer(nn.Module):
                 nn.Conv2d(input_c, output_c, 3, bias=bias,  padding=padding, groups=input_c, dilation=dilation,
                           padding_mode='replicate'),
                 nn.BatchNorm2d(output_c),
+                nn.ReLU(),
                 nn.Conv2d(output_c, output_c, 1, bias=bias)
             )
         else:
-            self.convlayer = nn.Sequential(
-                nn.Conv2d(input_c, output_c, 3, bias=bias, padding=padding, groups=1, dilation=dilation,
-                          padding_mode='replicate'),
-                nn.BatchNorm2d(output_c)
-            )
+            self.convlayer = nn.Conv2d(input_c, output_c, 3, bias=bias, padding=padding, groups=1, dilation=dilation,
+                                       padding_mode='replicate')
+
+        self.normlayer = nn.BatchNorm2d(output_c)
 
         self.skiplayer = None
         if self.skip and input_c != output_c:
@@ -37,8 +37,7 @@ class ConvLayer(nn.Module):
     def forward(self, x):
         x_ = x
         x = self.convlayer(x)
-        # if self.normlayer is not None:
-        #     x = self.normlayer(x)
+        x = self.normlayer(x)
         if self.skip:
             if self.skiplayer is None:
                 x += x_
@@ -60,15 +59,15 @@ class Model(nn.Module):
         self.cblock1 = self.get_conv_block(3, 24, padding=1, dws=True, skip=False, reps=2, dropout=self.dropout)
         self.tblock1 = self.get_trans_block(24, 32, padding=0, dws=False, skip=False, dilation=1, dropout=self.dropout)
         self.cblock2 = self.get_conv_block(32, 32, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock2 = self.get_trans_block(32, 64, padding=0, dws=False, skip=False, dilation=2, dropout=self.dropout)
-        self.cblock3 = self.get_conv_block(64, 64, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock3 = self.get_trans_block(64, 96, padding=0, dws=False, skip=False, dilation=4, dropout=self.dropout)
-        self.cblock4 = self.get_conv_block(96, 96, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock4 = self.get_trans_block(96, 96, padding=0, dws=False, skip=False, dilation=8, dropout=0)
+        self.tblock2 = self.get_trans_block(32, 65, padding=0, dws=False, skip=False, dilation=2, dropout=self.dropout)
+        self.cblock3 = self.get_conv_block(65, 65, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
+        self.tblock3 = self.get_trans_block(65, 95, padding=0, dws=False, skip=False, dilation=4, dropout=self.dropout)
+        self.cblock4 = self.get_conv_block(95, 95, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
+        self.tblock4 = self.get_trans_block(95, 95, padding=0, dws=False, skip=False, dilation=8, dropout=0)
 
         self.oblock = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(96, 10, 1, bias=True),
+            nn.Conv2d(95, 10, 1, bias=True),
             nn.Flatten(),
             nn.LogSoftmax(-1)
         )
