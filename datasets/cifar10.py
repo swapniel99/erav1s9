@@ -26,8 +26,10 @@ class CIFAR10(MyDataSet):
     def get_train_transforms(self):
         if self.alb_transforms is None:
             self.alb_transforms = [
+                A.Downscale(p=0.2),
+                A.ColorJitter(),
+                A.ToGray(p=0.2),
                 A.HorizontalFlip(p=0.5),
-                A.ToGray(p=0.1),
                 A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.1, rotate_limit=7),
                 A.CoarseDropout(max_holes=1, max_height=16, max_width=16, p=0.5)  # Since already normalised mean=0=fill
             ]
