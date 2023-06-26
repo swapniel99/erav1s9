@@ -60,7 +60,7 @@ class Train(object):
             processed += len(data)
 
             pbar.set_description(
-                desc=f"Train: Average Loss={train_loss / processed:0.4f}, Accuracy={100 * correct / processed:0.2f}"
+                desc=f"Train: Average Loss: {train_loss / processed:0.4f}, Accuracy: {100 * correct / processed:0.2f}"
             )
 
         train_acc = 100 * correct / processed
@@ -131,23 +131,22 @@ class Test(object):
 
 
 class Experiment(object):
-    def __init__(self, model, dataset, lr=0.01, criterion=F.nll_loss, target=None):
+    def __init__(self, model, dataset, lr=0.01, criterion=F.nll_loss):
         self.model = model.to(get_device())
         self.dataset = dataset
         self.optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=1, verbose=True, factor=0.1)
         self.train = Train(self.model, dataset, criterion, self.optimizer)
         self.test = Test(self.model, dataset, criterion)
-        self.target = target
         self.incorrect_preds = None
 
-    def execute(self, num_epochs=20):
+    def execute(self, epochs=20, target=None):
         target_count = 0
-        for epoch in range(1, num_epochs + 1):
+        for epoch in range(1, epochs + 1):
             print(f'Epoch {epoch}')
             self.train()
             test_loss, test_acc = self.test()
-            if self.target is not None and test_acc >= self.target:
+            if target is not None and test_acc >= target:
                 target_count += 1
                 if target_count >= 3:
                     print("Target Validation accuracy achieved thrice. Stopping Training.")
