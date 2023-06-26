@@ -12,7 +12,7 @@ class ConvLayer(nn.Module):
         # If Depthwise Separable is True
         if dws and input_c == output_c:
             self.convlayer = nn.Sequential(
-                nn.Conv2d(input_c, output_c, 3, bias=bias,  padding=padding, groups=input_c, dilation=dilation,
+                nn.Conv2d(input_c, output_c, 3, bias=bias, padding=padding, groups=input_c, dilation=dilation,
                           padding_mode='replicate'),
                 nn.BatchNorm2d(output_c),
                 nn.ReLU(),
