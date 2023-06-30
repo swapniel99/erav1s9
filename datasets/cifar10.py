@@ -27,10 +27,6 @@ class CIFAR10(MyDataSet):
     def get_train_transforms(self):
         if self.alb_transforms is None:
             self.alb_transforms = [
-                A.Downscale(0.8, 0.95, p=0.2, interpolation={'downscale': cv2.INTER_AREA,
-                                                             'upscale': cv2.INTER_NEAREST}),
-                A.ColorJitter(0.1, 0.1, 0.1, 0.1, p=0.2),
-                A.ToGray(p=0.1),
                 A.HorizontalFlip(p=0.5),
                 A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=15),
                 # Padding value doesnt matter here.
@@ -39,7 +35,7 @@ class CIFAR10(MyDataSet):
                 A.CoarseDropout(max_holes=1, max_height=16, max_width=16, fill_value=0, p=0.6),
                 A.CenterCrop(32, 32, p=1)
             ]
-        return super(CIFAR10, self).get_train_transforms()
+        return super(CIFAR10, self).get_train_transforms(
 
     def get_train_loader(self):
         super(CIFAR10, self).get_train_loader()
