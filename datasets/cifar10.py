@@ -35,7 +35,7 @@ class CIFAR10(MyDataSet):
                 A.CoarseDropout(max_holes=1, max_height=16, max_width=16, fill_value=0, p=0.6),
                 A.CenterCrop(32, 32, p=1)
             ]
-        return super(CIFAR10, self).get_train_transforms(
+        return super(CIFAR10, self).get_train_transforms()
 
     def get_train_loader(self):
         super(CIFAR10, self).get_train_loader()
