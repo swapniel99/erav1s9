@@ -29,8 +29,8 @@ class CIFAR10(MyDataSet):
             self.alb_transforms = [
                 A.Downscale(0.8, 0.95, p=0.2, interpolation={'downscale': cv2.INTER_AREA,
                                                              'upscale': cv2.INTER_NEAREST}),
-                A.ColorJitter(0.1, 0.1, 0.1, 0.1, p=0.1),
-                A.ToGray(p=0.2),
+                A.ColorJitter(0.1, 0.1, 0.1, 0.1, p=0.2),
+                A.ToGray(p=0.1),
                 A.HorizontalFlip(p=0.5),
                 A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=15),
                 # Since normalisation was the first step, mean is already 0, so cutout fill = 0
