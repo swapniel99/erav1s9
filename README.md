@@ -18,13 +18,13 @@ import albumentations as A
 
 alb_transforms = [
     A.Normalize(mean, std),
-    A.Downscale(0.8, 0.95, p=0.2),
-    A.ColorJitter(0.1, 0.1, 0.1, 0.1, p=0.2),
-    A.ToGray(p=0.1),
     A.HorizontalFlip(p=0.5),
     A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=15),
-    # Since normalisation was the first step, mean is already 0, so fill_value = 0
-    A.CoarseDropout(max_holes=1, max_height=16, max_width=16, p=0.2, fill_value=0),
+    # Padding value doesnt matter here.
+    A.PadIfNeeded(64, 64, border_mode=cv2.BORDER_CONSTANT, value=0, p=1),
+    # Since normalisation was the first step, mean is already 0, so cutout fill_value = 0
+    A.CoarseDropout(max_holes=1, max_height=16, max_width=16, fill_value=0, p=0.6),
+    A.CenterCrop(32, 32, p=1),
     A.pytorch.ToTensorV2()
 ]
 ```
@@ -101,9 +101,9 @@ This module contains miscellaneous functions like detecting device and setting r
 
 ## The Results
 
-Best Train Accuracy: 78.34%
+Best Train Accuracy: 85.85%
 
-Best Test Accuracy: 85.25%
+Best Test Accuracy: 86.68%
 
 ![Training](assets/train.png)
 ![Testing](assets/test.png)
