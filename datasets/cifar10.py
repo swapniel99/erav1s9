@@ -27,12 +27,13 @@ class CIFAR10(MyDataSet):
     def get_train_transforms(self):
         if self.alb_transforms is None:
             self.alb_transforms = [
+                A.ToGray(p=0.2),
                 A.HorizontalFlip(p=0.5),
                 A.ShiftScaleRotate(shift_limit=0.0625, scale_limit=0.1, rotate_limit=15),
                 # Padding value doesnt matter here.
                 A.PadIfNeeded(64, 64, border_mode=cv2.BORDER_CONSTANT, value=0, p=1),
                 # Since normalisation was the first step, mean is already 0, so cutout fill_value = 0
-                A.CoarseDropout(max_holes=1, max_height=16, max_width=16, fill_value=0, p=0.6),
+                A.CoarseDropout(max_holes=1, max_height=16, max_width=16, fill_value=0, p=0.5),
                 A.CenterCrop(32, 32, p=1)
             ]
         return super(CIFAR10, self).get_train_transforms()
