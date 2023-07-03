@@ -12,7 +12,7 @@ class ConvLayer(nn.Module):
         # If Depthwise Separable is True
         if dws and input_c == output_c:
             self.convlayer = nn.Sequential(
-                nn.Conv2d(input_c, output_c, 3, bias=bias, padding=padding, groups=input_c, dilation=dilation,
+                nn.Conv2d(output_c, output_c, 3, bias=bias, padding=padding, groups=input_c, dilation=dilation,
                           padding_mode='replicate'),
                 nn.BatchNorm2d(output_c),
                 nn.ReLU(),
@@ -56,18 +56,17 @@ class Model(nn.Module):
         # Member Variables
         self.dropout = dropout
 
-        self.cblock1 = self.get_conv_block(3, 25, padding=1, dws=True, skip=False, reps=2, dropout=self.dropout)
-        self.tblock1 = self.get_trans_block(25, 32, padding=0, dws=False, skip=False, dilation=1, dropout=self.dropout)
-        self.cblock2 = self.get_conv_block(32, 32, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock2 = self.get_trans_block(32, 65, padding=0, dws=False, skip=False, dilation=2, dropout=self.dropout)
-        self.cblock3 = self.get_conv_block(65, 65, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock3 = self.get_trans_block(65, 95, padding=0, dws=False, skip=False, dilation=4, dropout=self.dropout)
-        self.cblock4 = self.get_conv_block(95, 95, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
-        self.tblock4 = self.get_trans_block(95, 95, padding=0, dws=False, skip=False, dilation=8, dropout=0)
+        self.cblock1 = self.get_conv_block(3, 32, padding=1, dws=True, skip=False, reps=2, dropout=self.dropout)
+        self.tblock1 = self.get_trans_block(32, 46, padding=0, dilation=2)
+        self.cblock2 = self.get_conv_block(46, 46, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
+        self.tblock2 = self.get_trans_block(46, 80, padding=0, dilation=4)
+        self.cblock3 = self.get_conv_block(80, 80, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
+        self.tblock3 = self.get_trans_block(80, 128, padding=0, dilation=8)
+        self.cblock4 = self.get_conv_block(128, 128, padding=1, dws=True, skip=skip, reps=2, dropout=self.dropout)
 
         self.oblock = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(95, 10, 1, bias=True),
+            nn.Conv2d(128, 10, 1, bias=True),
             nn.Flatten(),
             nn.LogSoftmax(-1)
         )
@@ -84,9 +83,9 @@ class Model(nn.Module):
         return nn.Sequential(*block)
 
     @staticmethod
-    def get_trans_block(input_c, output_c, bias=False, padding=0, dws=False, skip=False, dilation=1, dropout=0):
-        return ConvLayer(input_c, output_c, bias=bias, padding=padding, dws=dws, skip=skip, dilation=dilation,
-                         dropout=dropout)
+    def get_trans_block(input_c, output_c, bias=False, padding=0, dilation=1):
+        return nn.Conv2d(input_c, output_c, 3, bias=bias, padding=padding, groups=1, dilation=dilation,
+                         padding_mode='replicate')
 
     def forward(self, x):
         x = self.cblock1(x)
@@ -96,7 +95,6 @@ class Model(nn.Module):
         x = self.cblock3(x)
         x = self.tblock3(x)
         x = self.cblock4(x)
-        x = self.tblock4(x)
         x = self.oblock(x)
         return x
 
