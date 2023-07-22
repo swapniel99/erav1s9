@@ -38,12 +38,12 @@ class ConvLayer(nn.Module):
         x_ = x
         x = self.convlayer(x)
         x = self.normlayer(x)
+        x = self.actlayer(x)
         if self.skip:
             if self.skiplayer is None:
-                x += x_
+                x = x + x_
             else:
-                x += self.skiplayer(x_)
-        x = self.actlayer(x)
+                x = x + self.skiplayer(x_)
         if self.droplayer is not None:
             x = self.droplayer(x)
         return x
